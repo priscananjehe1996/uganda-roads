@@ -167,7 +167,8 @@ export type ActiveView =
   | 'pendingsurveys'    // Pending condition survey submissions
   | 'dataaudit'         // Data Audit Panel — admin-only cross-section KPI validation
   | 'datacapture'       // Data Capture Hub — login-gated forms that write to Supabase
-  | 'mindmap';          // Platform Mind Map — 5D architectural schematic
+  | 'mindmap'           // Platform Mind Map — 5D architectural schematic
+  | 'gisenterprise';    // GIS Enterprise Dashboard
 
 // ─── Road network types ───────────────────────────────────────────────────────
 export type RoadClass   = 'A' | 'B' | 'C' | 'M';
