@@ -52,4 +52,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
-          force_orphan: true
+          # No force_orphan: keep gh-pages history so each deploy is an
+          # INCREMENTAL push (only changed bundles/data) instead of re-uploading
+          # all committed media every time. Cuts deploy from ~15 min to ~1 min.
