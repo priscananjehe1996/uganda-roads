@@ -17,6 +17,7 @@
     "watch:bg": "start /B node watcher.mjs > uganda-roads-watcher.log 2>&1"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
     "@supabase/supabase-js": "^2.107.0",
     "exceljs": "^4.4.0",
     "html-to-image": "^1.11.13",
