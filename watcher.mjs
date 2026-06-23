@@ -1,13 +1,13 @@
-// watcher.mjs — auto build-and-deploy watcher for the Uganda NRMS platform.
-// Watches the G: project, debounces, runs a full build, then deploys dist/ to
-// gh-pages. Build + deploy happen entirely within this project folder (G:) —
-// outDir is ./dist and gh-pages publishes from ./dist; no C:\tmp, no D:\.
+// watcher.mjs — auto-commit/push watcher for the Uganda NRMS platform.
+// Watches the project, debounces, then `git add -A && git commit && git push
+// origin main`. GitHub Actions (.github/workflows/deploy.yml) does the actual
+// Vite build + gh-pages deploy — this watcher no longer builds locally.
 //
 //   node watcher.mjs            (foreground)
 //   npm run watch               (same)
 //   start-watcher.ps1           (background + log tail)
 //
-// Every attempt/result/deploy is appended to uganda-roads-watcher.log.
+// Every change/commit/push is appended to uganda-roads-watcher.log.
 import chokidar from 'chokidar';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -16,9 +16,10 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const LOG = path.join(ROOT, 'uganda-roads-watcher.log');
-const DEBOUNCE_MS = 2000;
+const DEBOUNCE_MS = 4000;          // give editors time to finish saving batches
+const BRANCH = 'main';
 
-// Optional Drive data sources synced into public/data before each build.
+// Optional Drive data sources synced into public/data before each commit.
 const DATA_SOURCES = [path.join(ROOT, '..', 'data'), path.join(ROOT, '..', 'assets')];
 const PUBLIC_DATA = path.join(ROOT, 'public', 'data');
 
@@ -43,7 +44,7 @@ function run(cmd, args) {
   });
 }
 
-// Copy any newer data files from G:\data / G:\assets into public/data.
+// Copy any newer data files from ../data / ../assets into public/data.
 function syncDriveData() {
   let copied = 0;
   for (const srcDir of DATA_SOURCES) {
@@ -62,26 +63,35 @@ function syncDriveData() {
   if (copied) log(`Synced ${copied} data file(s) into public/data from Drive sources.`);
 }
 
-let building = false, pending = false, timer = null;
+let pushing = false, pending = false, timer = null;
 
-async function build() {
-  if (building) { pending = true; return; }       // coalesce overlapping triggers
-  building = true;
+async function commitAndPush() {
+  if (pushing) { pending = true; return; }          // coalesce overlapping triggers
+  pushing = true;
   try {
     syncDriveData();
-    log('BUILD START — npm run build (cwd=G: project)');
-    const b = await run('npm', ['run', 'build']);
-    if (b.code !== 0) {
-      log(`BUILD FAILED (exit ${b.code}) — ${b.out.split('\n').slice(-12).join(' | ').slice(0, 1200)}`);
+
+    // Anything to commit?
+    const status = await run('git', ['status', '--porcelain']);
+    if (!status.out.trim()) { log('No changes to commit — skipping.'); return; }
+
+    const stamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    log('CHANGES STAGED — git add -A');
+    await run('git', ['add', '-A']);
+
+    const c = await run('git', ['commit', '-m', `auto: ${stamp}`]);
+    if (c.code !== 0) {
+      log(`COMMIT FAILED (exit ${c.code}) — ${c.out.split('\n').slice(-6).join(' | ').slice(0, 800)}`);
       return;
     }
-    log('BUILD SUCCESS — deploying dist/ to gh-pages…');
-    const d = await run('npx', ['gh-pages', '-d', 'dist', '-b', 'gh-pages', '-f',
-      '-m', 'Auto-deploy via watcher']);
-    log(d.code === 0 ? 'DEPLOY SUCCESS — gh-pages updated.'
-                     : `DEPLOY FAILED (exit ${d.code}) — ${d.out.split('\n').slice(-8).join(' | ').slice(0, 800)}`);
+    log(`COMMITTED "auto: ${stamp}" — pushing to origin/${BRANCH}…`);
+
+    const p = await run('git', ['push', 'origin', BRANCH]);
+    log(p.code === 0
+      ? 'PUSH SUCCESS — GitHub Actions will build + deploy. Watch the Actions tab.'
+      : `PUSH FAILED (exit ${p.code}) — ${p.out.split('\n').slice(-6).join(' | ').slice(0, 800)}`);
   } finally {
-    building = false;
+    pushing = false;
     if (pending) { pending = false; trigger('queued change'); }
   }
 }
@@ -89,7 +99,7 @@ async function build() {
 function trigger(reason) {
   if (timer) clearTimeout(timer);
   log(`CHANGE DETECTED (${reason}) — debouncing ${DEBOUNCE_MS}ms…`);
-  timer = setTimeout(() => { timer = null; void build(); }, DEBOUNCE_MS);
+  timer = setTimeout(() => { timer = null; void commitAndPush(); }, DEBOUNCE_MS);
 }
 
 const watcher = chokidar.watch(WATCH, {
@@ -100,7 +110,7 @@ watcher
   .on('add', p => trigger(`add ${path.relative(ROOT, p)}`))
   .on('change', p => trigger(`change ${path.relative(ROOT, p)}`))
   .on('unlink', p => trigger(`remove ${path.relative(ROOT, p)}`))
-  .on('ready', () => log(`Watcher started. Watching: ${WATCH.map(p => path.relative(ROOT, p) || '.').join(', ')}`));
+  .on('ready', () => log(`Watcher started (commit+push mode). Watching: ${WATCH.map(p => path.relative(ROOT, p) || '.').join(', ')}`));
 
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, () => { log('Watcher stopped.'); watcher.close().finally(() => process.exit(0)); });
