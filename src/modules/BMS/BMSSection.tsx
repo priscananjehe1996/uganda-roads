@@ -27,7 +27,7 @@ function Spinner() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
       <div style={{ width: 28, height: 28, borderRadius: '50%',
-        border: '2px solid rgba(75,99,130,0.4)', borderTopColor: '#4d9fff',
+        border: '2px solid rgba(75,99,130,0.4)', borderTopColor: '#00f5ff',
         animation: 'bms-spin 0.8s linear infinite' }} />
     </div>
   );
@@ -47,7 +47,7 @@ function SubTabBar({
     <div style={{
       display: 'flex', gap: 4, padding: '6px 14px 0',
       borderBottom: '1px solid rgba(255,255,255,0.06)',
-      background: 'rgba(4,9,18,0.6)', flexShrink: 0,
+      background: 'rgba(8,8,8,0.6)', flexShrink: 0,
     }}>
       {tabs.map(t => {
         const isActive = t.id === active;
@@ -56,8 +56,8 @@ function SubTabBar({
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '5px 12px 7px', fontSize: 10, fontWeight: isActive ? 700 : 500,
             background: 'none', border: 'none', cursor: 'pointer',
-            color: isActive ? '#4d9fff' : 'rgba(148,163,184,0.65)',
-            borderBottom: isActive ? '2px solid #4d9fff' : '2px solid transparent',
+            color: isActive ? '#00f5ff' : 'rgba(148,163,184,0.65)',
+            borderBottom: isActive ? '2px solid #00f5ff' : '2px solid transparent',
             transition: 'all 0.13s',
           }}>
             {t.icon}
@@ -99,7 +99,7 @@ export default function BMSSection() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100%',
-      background: 'rgba(2,5,8,0.97)',
+      background: 'rgba(2,2,2,0.97)',
       fontFamily: "'Inter','Segoe UI',sans-serif",
     }}>
       <style>{`
@@ -113,7 +113,7 @@ export default function BMSSection() {
       <div style={{
         display: 'flex', gap: 2, padding: '0 14px',
         borderBottom: '1px solid rgba(77,159,255,0.15)',
-        background: 'rgba(4,9,18,0.85)', flexShrink: 0,
+        background: 'rgba(8,8,8,0.85)', flexShrink: 0,
       }}>
         {MAIN_TABS.map(t => {
           const isActive = t.id === mainTab;
@@ -122,8 +122,8 @@ export default function BMSSection() {
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '10px 14px 11px', fontSize: 11, fontWeight: isActive ? 800 : 500,
               background: 'none', border: 'none', cursor: 'pointer',
-              color: isActive ? '#4d9fff' : 'rgba(148,163,184,0.70)',
-              borderBottom: isActive ? '2px solid #4d9fff' : '2px solid transparent',
+              color: isActive ? '#00f5ff' : 'rgba(148,163,184,0.70)',
+              borderBottom: isActive ? '2px solid #00f5ff' : '2px solid transparent',
               transition: 'all 0.13s', flexShrink: 0,
             }}>
               {t.icon}

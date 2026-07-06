@@ -42,8 +42,6 @@ import { hexRgb } from '../../lib/chart3d';
 import FeatureAnalyticsPanel from '../../shared/FeatureAnalyticsPanel';
 import type { FeatureData, RoadLinkFeature, AtcStationFeature } from '../../shared/FeatureAnalyticsPanel';
 import { ROAD_STYLES, ESRI_TILE_URLS, ESRI_ATTRIBUTIONS } from '../../shared/mapSymbols';
-import { WaterLayers } from '../../shared/WaterLayers';
-import { InfraLayers } from '../../shared/InfraLayers';
 import { MapLegend as MapOverlayLegend, LEGEND_TRAFFIC } from '../../shared/MapLegend';
 import SourceTableButton from '../../shared/SourceTableButton';
 import CrossLinkChipBar from '../../shared/CrossLinkChipBar';
@@ -385,7 +383,7 @@ function LinkClassTable({ features, surfMap: _surfMap }: { features: PredFeature
               const aadt2016 = Math.round(projections.reduce(
                 (s, c) => s + c.baseCount / Math.pow(1 + c.growth, TIS_YEAR - BASE_YEAR), 0));
               const projAadt   = projections.reduce((s, c) => s + c.projCount, 0);
-              const rowBg = i % 2 === 0 ? 'rgba(15,23,42,0.35)' : 'transparent';
+              const rowBg = i % 2 === 0 ? 'rgba(15,15,15,0.35)' : 'transparent';
               const clsColor = CLASS_COLORS[p.road_class ?? ''] ?? '#94a3b8';
               // Blended growth (weighted by share) from the 2016 base to now
               const blendedGrowthPct = projections.reduce(
@@ -660,7 +658,7 @@ export default function TrafficSection() {
       <div style={{
         display: 'flex', gap: 2, padding: '0 14px', flexShrink: 0,
         borderBottom: '1px solid rgba(77,159,255,0.15)',
-        background: 'rgba(4,9,18,0.85)',
+        background: 'rgba(8,8,8,0.85)',
       }}>
         {MAIN_TABS.map(t => {
           const isActive = t.id === activeTab;
@@ -684,7 +682,7 @@ export default function TrafficSection() {
       {activeTab === 'counts' && (
         <div style={{
           display:'flex', gap:4, padding:'6px 14px 0', flexShrink:0,
-          borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(4,9,18,0.6)',
+          borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(8,8,8,0.6)',
         }}>
           {COUNTS_TABS.map(t => {
             const isA = t.id === countsTab;
@@ -708,7 +706,7 @@ export default function TrafficSection() {
       {activeTab === 'trends' && (
         <div style={{
           display:'flex', gap:4, padding:'6px 14px 0', flexShrink:0,
-          borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(4,9,18,0.6)',
+          borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(8,8,8,0.6)',
         }}>
           {TRENDS_TABS.map(t => {
             const isA = t.id === trendsTab;
@@ -818,8 +816,6 @@ export default function TrafficSection() {
             style={{ height: '100%', width: '100%', background: '#0a0f1e' }}>
             <TileLayer url={ESRI_TILE_URLS.imagery}   attribution={ESRI_ATTRIBUTIONS.imagery} />
             <TileLayer url={ESRI_TILE_URLS.labels}    attribution={ESRI_ATTRIBUTIONS.labels} opacity={0.7} />
-            <WaterLayers />
-            <InfraLayers />
             <MapOverlayLegend title="Traffic Volume" items={LEGEND_TRAFFIC} />
             <ZoomControl position="bottomright" />
 
@@ -1172,14 +1168,14 @@ export default function TrafficSection() {
                     { label: 'TIS Stations', value: tcsStations.length.toString(), color: '#ffd23f', sub: 'manual + ATC' },
                     { label: 'Growth 2025→2040', value: kpis ? `+${kpis.growthRatio.toFixed(0)}%` : '—', color: '#00ff88', sub: 'ML forecast' },
                   ].map(k => (
-                    <div key={k.label} style={{ background:'rgba(8,14,28,0.55)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, padding:'12px 14px' }}>
+                    <div key={k.label} style={{ background:'rgba(8,8,8,0.55)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, padding:'12px 14px' }}>
                       <div style={{ fontSize:8, fontWeight:700, color:'rgba(148,163,184,0.45)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:4 }}>{k.label}</div>
                       <div style={{ fontSize:22, fontWeight:900, color:k.color, lineHeight:1 }}>{k.value}</div>
                       <div style={{ fontSize:8, color:'rgba(148,163,184,0.4)', marginTop:3 }}>{k.sub}</div>
                     </div>
                   ))}
                 </div>
-                <div style={{ background:'rgba(8,14,28,0.55)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, padding:'12px 14px', marginBottom:12 }}>
+                <div style={{ background:'rgba(8,8,8,0.55)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, padding:'12px 14px', marginBottom:12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                     <div style={{ fontSize:11, fontWeight:800, color:'#e2eaf4' }}>Vehicle Class Composition — Uganda National Average (TIS 2025)</div>
                     <SourceTableButton anchor="tbl-009" />
@@ -1197,7 +1193,7 @@ export default function TrafficSection() {
                     ))}
                   </div>
                 </div>
-                <div style={{ background:'rgba(8,14,28,0.55)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, padding:'12px 14px' }}>
+                <div style={{ background:'rgba(8,8,8,0.55)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, padding:'12px 14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                     <div style={{ fontSize:11, fontWeight:800, color:'#e2eaf4' }}>Network AADT Growth Index 2016–2025</div>
                     <SourceTableButton anchor="tbl-008" />
@@ -1235,7 +1231,7 @@ export default function TrafficSection() {
                   {tcsStations.map((s, i) => (
                     <tr key={s.tcs_no ?? i} style={{
                       borderBottom: '1px solid rgba(148,163,184,0.04)',
-                      background: i % 2 === 0 ? 'rgba(15,23,42,0.3)' : 'transparent',
+                      background: i % 2 === 0 ? 'rgba(15,15,15,0.3)' : 'transparent',
                     }}>
                       <td style={{ padding: '5px 10px', color: C.yellow, fontFamily: 'monospace', fontSize: 8, whiteSpace: 'nowrap' }}>{s.tcs_no}</td>
                       <td style={{ padding: '5px 10px', color: '#e2eaf4', fontWeight: 600 }}>{s.tcs_name ?? '—'}</td>

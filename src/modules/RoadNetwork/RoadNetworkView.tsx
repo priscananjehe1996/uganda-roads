@@ -27,9 +27,8 @@ import type { Structure } from '../../types';
 import { ROAD_STYLES, surfaceCategory } from '../../shared/mapSymbols';
 import FeatureAnalyticsPanel from '../../shared/FeatureAnalyticsPanel';
 import type { FeatureData } from '../../shared/FeatureAnalyticsPanel';
-import { WaterLayers } from '../../shared/WaterLayers';
 import { InfraLayers } from '../../shared/InfraLayers';
-import { MapLegend, LEGEND_FULL } from "../../shared/MapLegend";
+import { MapLegend, LEGEND_INFRA_POINTS } from "../../shared/MapLegend";
 import SourceTableButton from '../../shared/SourceTableButton';
 import CrossLinkChipBar from '../../shared/CrossLinkChipBar';
 import { BotHighlightContext } from '../AssetBot/types';
@@ -69,8 +68,8 @@ interface NdpivData {
 const C = {
   paved:   '#00f5ff',   // neon cyan  (charts/stats only)
   unsealed:'#ff8c00',  // amber-orange (charts/stats only)
-  bgVoid:  '#020508',
-  glass:   'rgba(6,13,24,0.88)',
+  bgVoid:  '#000000',
+  glass:   'rgba(8,8,8,0.88)',
 };
 
 // ── Road line symbology — sourced from shared/mapSymbols.ts ──────────────────
@@ -209,7 +208,15 @@ const ANIM_MAX = 2026;
 const ANIM_STEP = 1;
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function RoadNetworkView() {
+interface RoadNetworkViewProps {
+  /** Show the Current/History mode toggle. RMS passes false — current map only;
+   *  the historical timeline lives in Life Cycle Management. */
+  showHistory?: boolean;
+  /** Start in History (timeline) mode — used by Life Cycle Management. */
+  defaultHistory?: boolean;
+}
+
+export default function RoadNetworkView({ showHistory = true, defaultHistory = false }: RoadNetworkViewProps = {}) {
   // Data
   const [geoData,    setGeoData]    = useState<GeoJSON.FeatureCollection | null>(null);
   const [paveYears,  setPaveYears]  = useState<Record<string, number | null>>({});
@@ -226,7 +233,7 @@ export default function RoadNetworkView() {
   const [animYear,   setAnimYear]   = useState(CURRENT_YEAR);
   const [playing,    setPlaying]    = useState(false);
   const [speed,      setSpeed]      = useState(600); // ms per year
-  const [animMode,   setAnimMode]   = useState(false); // false = current state
+  const [animMode,   setAnimMode]   = useState(showHistory && defaultHistory); // false = current state
 
   // Filter (current mode)
   const [colorBy,    setColorBy]    = useState<'surface'|'class'|'region'>('surface');
@@ -418,7 +425,7 @@ export default function RoadNetworkView() {
         {loading && (
           <div style={{ position:'absolute', inset:0, zIndex:2000, display:'flex',
             alignItems:'center', justifyContent:'center',
-            background:'rgba(2,5,8,0.85)', backdropFilter:'blur(8px)' }}>
+            background:'rgba(2,2,2,0.85)', backdropFilter:'blur(8px)' }}>
             <div style={{ textAlign:'center', color:'#00f5ff' }}>
               <div style={{ width:32, height:32, border:'2px solid rgba(0,245,255,0.2)',
                 borderTopColor:'#00f5ff', borderRadius:'50%',
@@ -442,9 +449,8 @@ export default function RoadNetworkView() {
             opacity={0.85}
             attribution='Esri'
           />
-          <WaterLayers />
           <InfraLayers />
-          <MapLegend title="Road Network" items={LEGEND_FULL} position="bottomleft" />
+          <MapLegend title="Infrastructure" items={LEGEND_INFRA_POINTS} position="bottomleft" />
           <ZoomControl position="bottomright"/>
           <ZoomWatcher onZoom={setMapZoom}/>
           {geoData && (
@@ -531,7 +537,7 @@ export default function RoadNetworkView() {
                   <div style={{fontSize:10,fontWeight:600,color:'#374151',marginTop:2}}>
                     {s.spanLength} m span · {s.noOfSpans} span{s.noOfSpans !== 1 ? 's' : ''} ·{' '}
                     Cond: <span style={{color: isCritical ? '#dc2626' : '#166534', fontWeight:800}}>
-                      {['','Critical','Poor','Fair','Good','Excellent'][s.conditionRating]}
+                      {['','Critical','Poor','Marginal','Satisfactory','Good'][s.conditionRating]}
                     </span>
                   </div>
                 </LeafletTooltip>
@@ -543,11 +549,13 @@ export default function RoadNetworkView() {
         {/* ── Map top-left legend/controls ── */}
         <div style={{ position:'absolute', top:12, left:12, zIndex:999, display:'flex', flexDirection:'column', gap:8 }}>
 
-          {/* Mode toggle */}
-          <div style={{ ...glassStyle, padding:'8px 10px', display:'flex', gap:6 }}>
-            <ModeBtn active={!animMode} onClick={() => { setAnimMode(false); setPlaying(false); }} icon={<MapIcon size={12}/>} label="Current"/>
-            <ModeBtn active={animMode}  onClick={() => setAnimMode(true)}  icon={<Play size={12}/>} label="History"/>
-          </div>
+          {/* Mode toggle — hidden in RMS (current-only); history lives in Life Cycle */}
+          {showHistory && (
+            <div style={{ ...glassStyle, padding:'8px 10px', display:'flex', gap:6 }}>
+              <ModeBtn active={!animMode} onClick={() => { setAnimMode(false); setPlaying(false); }} icon={<MapIcon size={12}/>} label="Current"/>
+              <ModeBtn active={animMode}  onClick={() => setAnimMode(true)}  icon={<Play size={12}/>} label="History"/>
+            </div>
+          )}
 
           {/* Legend */}
           <div style={{ ...glassStyle, padding:'10px 12px', minWidth:180 }}>
@@ -666,7 +674,7 @@ export default function RoadNetworkView() {
         {animMode && (
           <div style={{
             position:'absolute', bottom:0, left:0, right:0, zIndex:999,
-            background:'rgba(2,5,8,0.92)', backdropFilter:'blur(16px)',
+            background:'rgba(2,2,2,0.92)', backdropFilter:'blur(16px)',
             borderTop:'1px solid rgba(0,245,255,0.10)',
             padding:'10px 20px 12px',
           }}>
@@ -782,7 +790,7 @@ export default function RoadNetworkView() {
               />
               {selectedRaw && selected && (
                 <div style={{
-                  width: 270, background:'rgba(6,13,24,0.97)', backdropFilter:'blur(16px)',
+                  width: 270, background:'rgba(8,8,8,0.97)', backdropFilter:'blur(16px)',
                   border:'1px solid rgba(0,245,255,0.12)', borderRadius:10, padding:'10px 12px',
                 }}>
                   <div style={{ fontSize:9, fontWeight:800, color:'rgba(0,245,255,0.5)',
@@ -816,7 +824,7 @@ export default function RoadNetworkView() {
         position:'absolute', right: sideOpen ? 420 : 0, top:'50%',
         transform:'translateY(-50%)', zIndex:1001,
         padding:'10px 4px',
-        background:'rgba(2,5,8,0.9)', backdropFilter:'blur(10px)',
+        background:'rgba(2,2,2,0.9)', backdropFilter:'blur(10px)',
         border:'1px solid rgba(0,245,255,0.15)',
         borderRight: sideOpen ? undefined : 'none',
         borderRadius: sideOpen ? '8px 0 0 8px' : '0 8px 8px 0',
@@ -828,7 +836,7 @@ export default function RoadNetworkView() {
       {/* ══ RIGHT PANEL — Dashboard ══════════════════════════════════════════ */}
       {sideOpen && (
         <div style={{ width:420, flexShrink:0,
-          background:'rgba(2,5,8,0.95)', backdropFilter:'blur(24px)',
+          background:'rgba(2,2,2,0.95)', backdropFilter:'blur(24px)',
           borderLeft:'1px solid rgba(0,245,255,0.08)',
           display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
@@ -1064,7 +1072,7 @@ function DashboardPanel({ stats, storyData, networkSummary }: {
               <YAxis tick={{ fill:'#64748b', fontSize:8 }} tickLine={false} axisLine={false}
                 tickFormatter={v => `${(v/1000).toFixed(0)}k`} width={28}/>
               <RechartsTip
-                contentStyle={{ background:'rgba(6,13,24,0.95)', border:'1px solid rgba(0,245,255,0.2)', borderRadius:8, fontSize:10 }}
+                contentStyle={{ background:'rgba(8,8,8,0.95)', border:'1px solid rgba(0,245,255,0.2)', borderRadius:8, fontSize:10 }}
                 labelStyle={{ color:'#00f5ff' }}
                 formatter={(v: number) => [`${v.toLocaleString()} km`, 'Paved']}
               />
@@ -1090,7 +1098,7 @@ function DashboardPanel({ stats, storyData, networkSummary }: {
               <YAxis type="category" dataKey="region" tick={{ fill:'#94a3b8', fontSize:9 }}
                 tickLine={false} axisLine={false} width={54}/>
               <RechartsTip
-                contentStyle={{ background:'rgba(6,13,24,0.95)', border:'1px solid rgba(0,245,255,0.2)', borderRadius:8, fontSize:10 }}
+                contentStyle={{ background:'rgba(8,8,8,0.95)', border:'1px solid rgba(0,245,255,0.2)', borderRadius:8, fontSize:10 }}
                 formatter={(v: number, name: string) => [`${v.toFixed(0)} km`, name === 'paved_km' ? 'Paved' : 'Unsealed']}
               />
               <Bar dataKey="paved_km" stackId="a" radius={[0,0,0,0]} maxBarSize={14}>
